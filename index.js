@@ -1,4 +1,6 @@
-const express = require("express");
+require('./cron.js');
+
+const express = require('express');
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
@@ -10,9 +12,9 @@ const POOL = require('./pool.js');
 
 mysql.getConnection((err, conn) => {
         if(err) throw err;
-        conn.query("SET autocommit = 0;");
-        conn.query("SET unique_checks = 0;");
-        conn.query("ALTER TABLE t_info DISABLE KEYS;")
+        conn.query('SET autocommit = 0;');
+        conn.query('SET unique_checks = 0;');
+        conn.query('ALTER TABLE t_info DISABLE KEYS;')
 
 sql2 = 'selec tasdfasdf form asdfa where asdfaf 1=1'
 values2 = {
@@ -27,11 +29,11 @@ values2 = {
 conn.query(sql2,values2,
 */
 
-app.get("/", (req, res) => {
-    res.send("Hello World");
+app.get('/', (req, res) => {
+    res.send('Hello World');
 });
 
-app.get("/api/get", (req, res) => {
+app.get('/api/get', (req, res) => {
     POOL.getConnection((err, conn) => {
         if (err) {
             if (conn) {
@@ -40,7 +42,7 @@ app.get("/api/get", (req, res) => {
             res.json({ok:false, err});
             return;
         }
-        conn.query("select * from test where 1=1", (err, result) => {
+        conn.query('select * from test where 1=1', (err, result) => {
             conn.release();
             if(err) {
                 res.json({ok:false, err});
@@ -51,27 +53,27 @@ app.get("/api/get", (req, res) => {
         })
     });
 })
-app.get("/api/get/:id", (req, res) => {
+app.get('/api/get/:id', (req, res) => {
     const id = req.params.id
     res.json({ok: false, id: id})
 })
-app.post("/api/post", (req, res) => {
+app.post('/api/post', (req, res) => {
     const { id, name } = req.body;
     res.json({ok: true, id: id, name: name})
 })
-app.put("/api/put/:id", (req, res) => {
+app.put('/api/put/:id', (req, res) => {
     const { id } = req.params
     const { name } = req.body
     res.json({ok: true, id: id, name: name})
 })
-app.patch("/api/patch/:id", (req, res) => {
+app.patch('/api/patch/:id', (req, res) => {
     const { id } = req.params
     const { name } = req.body
     res.json({ok: true, id: id, name: name})
 })
-app.delete("/api/delete/:id", (req, res) => {
+app.delete('/api/delete/:id', (req, res) => {
     const { id } = req.params;
     res.json({ok: true, id: id})
 })
 
-app.listen(3000, () => console.log("run express server"));
+app.listen(3000, () => console.log('run express server'));
