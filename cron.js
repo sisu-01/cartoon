@@ -34,9 +34,10 @@ function getNewestCartoonId(callback) {
  * for문으로 카연갤 페이지 싹 다 크롤링
  * @param {number} NEWEST 가장 최근 만화 id
  */
+const LOOP = 3;//1463
 async function crawling(NEWEST) {
     let crawlStop = false;
-    for(let i=1; i < 5; i++) {//1463
+    for(let i=1; i < LOOP; i++) {
         // setCartoonList callback으로 받은 beStop이 true면 크롤링 멈춤.
         if(crawlStop){
             break;
@@ -122,4 +123,4 @@ function main(first=false) {
         }
     });
 }
-main(true);
+main();
