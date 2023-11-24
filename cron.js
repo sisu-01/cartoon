@@ -36,7 +36,7 @@ function getNewestCartoonId(callback) {
  */
 async function crawling(NEWEST) {
     let crawlStop = false;
-    for(let i=1; i < 20; i++) {//1463
+    for(let i=1; i < 5; i++) {//1463
         // setCartoonList callback으로 받은 beStop이 true면 크롤링 멈춤.
         if(crawlStop){
             break;
@@ -69,6 +69,12 @@ function setCartoonList(NEWEST, HTML, callback) {
         }
         try {
             $('tbody > tr.us-post').map((i, el)=> {
+                const DATE = new Date($(el).find('.gall_date').attr('title'));
+                const isTwoWeek = 14 <= Math.ceil((new Date().setHours(0, 0, 0, 0)-DATE) / (1000 * 3600 * 24));
+                if(!isTwoWeek){
+                    console.log(DATE, '는 너무 일러서 컷');
+                    return;
+                }
                 const WRITER_ID = $(el).find('.gall_writer').attr('data-uid') === ''? 'a': $(el).find('.gall_writer').attr('data-uid');
                 const WRITER_VALUES = {
                     id: WRITER_ID,
@@ -79,7 +85,7 @@ function setCartoonList(NEWEST, HTML, callback) {
                     title: $(el).find('.gall_tit > a').first().text().substr(0, 5),
                     writer_id: WRITER_ID,
                     writer_nickname: $(el).find('.gall_writer > span > em').text(),
-                    date: $(el).find('.gall_date').attr('title'),
+                    date: DATE,
                     recommend: $(el).find('.gall_recommend').text(),
                 }
                 // 받아온 리스트를 차례차례 등록하다가,
