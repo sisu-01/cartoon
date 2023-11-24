@@ -8,7 +8,11 @@ let count = 0;
 //     console.log(count++);
 // });
 
-function getResult(callback) {
+/**
+ * 가장 최신의 만화 id를 가져온다.
+ * @param {*} callback
+ */
+function getNewestCartoonId(callback) {
     POOL.getConnection((err, conn) => {
         if (err) {
             if (conn) {
@@ -26,38 +30,36 @@ function getResult(callback) {
         })
     });
 };
-function cons(first=false) {
-    getResult((err, data) => {
-        if(err){
-            return false;
+/**
+ * for문으로 카연갤 페이지 싹 다 크롤링
+ * @param {number} NEWEST 가장 최근 만화 id
+ */
+async function crawling(NEWEST) {
+    let crawlStop = false;
+    for(let i=1; i < 3; i++) {//1463
+        // setCartoonList callback으로 받은 beStop이 true면 크롤링 멈춤.
+        if(crawlStop){
+            break;
         }
-        if(data[0] || first) {
-            const NEWEST = first? 1 : data[0]['id'];
-            //1463
-            let z = async () => {
-                let stop = false;
-                for(let i=1; i < 111; i++) {
-                    if(stop){
-                        break;
-                    }
-                    console.log(i);
-                    await fetch(`https://gall.dcinside.com/board/lists/?id=cartoon&page=${i}&exception_mode=recommend`)
-                    .then(response => response.text())
-                    .then((data) => {
-                        test(i, NEWEST, data, (beStop) => {
-                            stop = beStop;
-                        });
-                    })
-                    .catch(error => console.error('Error:', error));
-                }
-            }
-            z();
-        }
-    });
+        await fetch(`https://gall.dcinside.com/board/lists/?id=cartoon&page=${i}&exception_mode=recommend`)
+        .then(response => response.text())
+        .then((data) => {
+            setCartoonList(NEWEST, data, (beStop) => {
+                // callback으로 받은 beStop이 true면 크롤링 멈춤.
+                crawlStop = beStop;
+            });
+        })
+        .catch(error => console.error('Error:', error));
+    }
 }
-function test(j, NEWEST, data, callback) {
-    const $ = cheerio.load(data, null, false);
-    //us-post
+/**
+ * 스크래핑으로 가져온 만화 목록을 db에 하나씩 넣는다.
+ * @param {number} NEWEST db에 등록된 가장 최근의 만화 id. 받아온 data의 id가 NEWEST보다 작거나 같으면 db 등록 멈춤.
+ * @param {string} HTML 크롤링 해온 page 마크업
+ * @param {*} callback 여기로 스크래핑 for문 멈추라고 boolean 보냄
+ */
+function setCartoonList(NEWEST, HTML, callback) {
+    const $ = cheerio.load(HTML, null, false);
     POOL.getConnection((err, conn) => {
         if (err) {
             if (conn) {
@@ -75,14 +77,12 @@ function test(j, NEWEST, data, callback) {
                     date: $(el).find('.gall_date').attr('title'),
                     recommend: $(el).find('.gall_recommend').text(),
                 }
+                // 받아온 리스트를 차례차례 등록하다가,
+                // 기존에 db에 등록돼있던 만화보다 오래되거나 같으면 등록 멈춤
                 if(VALUES['id'] <= NEWEST) {
-                    throw `${j}: ${VALUES['id']}는 ${NEWEST}와 같거나 작아요`;
+                    throw '작거나 같음';
                 }else{
-                    conn.query(SQL, VALUES, (err, result) => {
-                        if(err) {
-                        }else{
-                        }
-                    })
+                    conn.query(SQL, VALUES);
                 }
             });
         } catch (e) {
@@ -95,5 +95,19 @@ function test(j, NEWEST, data, callback) {
         return false;
     });
 }
-
-cons();
+/**
+ * 스케쥴링해서 매일 밤 돌릴 메인 함수
+ * @param {boolean} first 기본은 false인데 true를 인자로 넣으면 만화 처음부터 끝까지 다 가져옴.
+ */
+function main(first=false) {
+    getNewestCartoonId((err, data) => {
+        if(err){
+            return false;
+        }
+        if(data[0] || first) {
+            const NEWEST = first? 1 : data[0]['id'];
+            crawling(NEWEST);
+        }
+    });
+}
+main(true);
