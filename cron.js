@@ -76,7 +76,6 @@ function setCartoonList(NEWEST, HTML, callback) {
                 }
                 const CARTOON_VALUES = {
                     id: $(el).find('.gall_num').text(),
-                    url: 'url',//$(el).find('.gall_tit a').attr('href').split('&exception_mode')[0],
                     title: $(el).find('.gall_tit > a').first().text().substr(0, 5),
                     writer_id: WRITER_ID,
                     writer_nickname: $(el).find('.gall_writer > span > em').text(),
@@ -117,4 +116,4 @@ function main(first=false) {
         }
     });
 }
-main();
+main(true);
