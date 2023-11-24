@@ -36,7 +36,7 @@ function getNewestCartoonId(callback) {
  */
 async function crawling(NEWEST) {
     let crawlStop = false;
-    for(let i=1; i < 2; i++) {//1463
+    for(let i=1; i < 20; i++) {//1463
         // setCartoonList callback으로 받은 beStop이 true면 크롤링 멈춤.
         if(crawlStop){
             break;
@@ -117,4 +117,4 @@ function main(first=false) {
         }
     });
 }
-main(true);
+main();
