@@ -34,16 +34,17 @@ function getNewestCartoonId(callback) {
  * for문으로 카연갤 페이지 싹 다 크롤링
  * @param {number} NEWEST 가장 최근 만화 id
  */
-const LOOP = 3;//1463
+const LOOP = 1465;//1463
 async function crawling(NEWEST) {
     let crawlStop = false;
     for(let i=1; i < LOOP; i++) {
+        console.log(i);
         // setCartoonList callback으로 받은 beStop이 true면 크롤링 멈춤.
         if(crawlStop){
             break;
         }
-        await fetch(`https://gall.dcinside.com/board/lists/?id=cartoon&page=${i}&search_pos=&s_type=search_name&s_keyword=.E3.85.87.E3.85.87&exception_mode=recommend`)
-        //await fetch(`https://gall.dcinside.com/board/lists/?id=cartoon&page=${i}&exception_mode=recommend`)
+        //await fetch(`https://gall.dcinside.com/board/lists/?id=cartoon&page=${i}&search_pos=&s_type=search_name&s_keyword=.E3.85.87.E3.85.87&exception_mode=recommend`)
+        await fetch(`https://gall.dcinside.com/board/lists/?id=cartoon&page=${i}&exception_mode=recommend`)
         .then(response => response.text())
         .then((data) => {
             setCartoonList(NEWEST, data, (beStop) => {
@@ -123,4 +124,4 @@ function main(first=false) {
         }
     });
 }
-main();
+main(true);
