@@ -6,34 +6,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
 const POOL = require('./pool.js');
 
-/*
-//select * from test where 1=1;
-//
-
-mysql.getConnection((err, conn) => {
-        if(err) throw err;
-        conn.query('SET autocommit = 0;');
-        conn.query('SET unique_checks = 0;');
-        conn.query('ALTER TABLE t_info DISABLE KEYS;')
-
-sql2 = 'selec tasdfasdf form asdfa where asdfaf 1=1'
-values2 = {
-    board_id:values.board_id,
-    ipaddr: values.ipaddr,
-    ipaddr1: values.ipaddr1,
-    ipaddr2: values.ipaddr2,
-    ipaddr3: values.ipaddr3,
-    ipaddr4: values.ipaddr4,
-    error_log: err.sqlMessage
-};
-conn.query(sql2,values2,
-*/
+const PAGE_LIMIT = 5;
 
 app.get('/', (req, res) => {
     res.send('Hello World');
 });
 
-app.get('/api/get', (req, res) => {
+app.get('/cartoon/:page', (req, res) => {
+    const PAGE = req.params.page || 0;
+    const PAGE_START = PAGE * PAGE_LIMIT;
     POOL.getConnection((err, conn) => {
         if (err) {
             if (conn) {
@@ -42,7 +23,7 @@ app.get('/api/get', (req, res) => {
             res.json({ok:false, err});
             return;
         }
-        conn.query('select * from test where 1=1', (err, result) => {
+        conn.query(`select title from cartoon where 1=1 order by id desc limit ${PAGE_START}, ${PAGE_LIMIT};`, (err, result) => {
             conn.release();
             if(err) {
                 res.json({ok:false, err});
