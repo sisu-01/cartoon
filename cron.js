@@ -36,12 +36,13 @@ function getNewestCartoonId(callback) {
  */
 async function crawling(NEWEST) {
     let crawlStop = false;
-    for(let i=1; i < 3; i++) {//1463
+    for(let i=1; i < 2; i++) {//1463
         // setCartoonList callback으로 받은 beStop이 true면 크롤링 멈춤.
         if(crawlStop){
             break;
         }
-        await fetch(`https://gall.dcinside.com/board/lists/?id=cartoon&page=${i}&exception_mode=recommend`)
+        await fetch(`https://gall.dcinside.com/board/lists/?id=cartoon&page=${i}&search_pos=&s_type=search_name&s_keyword=.E3.85.87.E3.85.87&exception_mode=recommend`)
+        //await fetch(`https://gall.dcinside.com/board/lists/?id=cartoon&page=${i}&exception_mode=recommend`)
         .then(response => response.text())
         .then((data) => {
             setCartoonList(NEWEST, data, (beStop) => {
@@ -66,23 +67,29 @@ function setCartoonList(NEWEST, HTML, callback) {
                 conn.release()
             }
         }
-        const SQL = 'INSERT INTO cartoon SET ?';
         try {
             $('tbody > tr.us-post').map((i, el)=> {
-                const VALUES = {
+                const WRITER_ID = $(el).find('.gall_writer').attr('data-uid') === ''? 'a': $(el).find('.gall_writer').attr('data-uid');
+                const WRITER_VALUES = {
+                    id: WRITER_ID,
+                    nickname: $(el).find('.gall_writer').attr('data-nick'),
+                }
+                const CARTOON_VALUES = {
                     id: $(el).find('.gall_num').text(),
                     url: 'url',//$(el).find('.gall_tit a').attr('href').split('&exception_mode')[0],
                     title: $(el).find('.gall_tit > a').first().text().substr(0, 5),
-                    writer: $(el).find('.gall_writer > span > em').text(),
+                    writer_id: WRITER_ID,
+                    writer_nickname: $(el).find('.gall_writer > span > em').text(),
                     date: $(el).find('.gall_date').attr('title'),
                     recommend: $(el).find('.gall_recommend').text(),
                 }
                 // 받아온 리스트를 차례차례 등록하다가,
                 // 기존에 db에 등록돼있던 만화보다 오래되거나 같으면 등록 멈춤
-                if(VALUES['id'] <= NEWEST) {
+                if(CARTOON_VALUES['id'] <= NEWEST) {
                     throw '작거나 같음';
                 }else{
-                    conn.query(SQL, VALUES);
+                    conn.query('INSERT INTO writer SET ?', WRITER_VALUES);
+                    conn.query('INSERT INTO cartoon SET ?', CARTOON_VALUES);
                 }
             });
         } catch (e) {
