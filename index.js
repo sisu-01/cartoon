@@ -87,7 +87,7 @@ app.get('/info', (req, res) => {
     const NICKNAME = req.query.nickname;
 
     let sql = '';
-    sql += `SELECT title, date, recommend FROM cartoon WHERE writer_id = '${ID}' AND writer_nickname = '${NICKNAME}'`;
+    sql += `SELECT id, title, date, recommend FROM cartoon WHERE writer_id = '${ID}' AND writer_nickname = '${NICKNAME}'`;
     sql += ` ORDER BY id DESC LIMIT ${PAGE_START}, ${PAGE_LIMIT};`
 
     POOL.getConnection((err, conn) => {
