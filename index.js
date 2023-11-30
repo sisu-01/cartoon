@@ -20,9 +20,11 @@ app.get('/', (req, res) => {
 });
 
 // cartoon list
-app.get('/cartoon/:page', (req, res) => {
-    const PAGE = req.params.page || 0;
+app.get('/cartoon', (req, res) => {
+    let temp = req.query.page;
+    const PAGE = (1<=temp)? temp-1: 0;
     const PAGE_START = PAGE * PAGE_LIMIT;
+    
     POOL.getConnection((err, conn) => {
         if (err) {
             if (conn) {
