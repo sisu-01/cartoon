@@ -1,10 +1,17 @@
+const POOL = require('./pool.js');
+const express = require('express');
+const cors = require('cors');
 require('./cron.js');
 
-const express = require('express');
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
-const POOL = require('./pool.js');
+app.use(cors({
+    'origin': [
+        'http://localhost:3000',
+        'http://localhost:3001'
+    ]
+}));
 
 const PAGE_LIMIT = 5;
 
@@ -89,4 +96,4 @@ app.delete('/api/delete/:id', (req, res) => {
     res.json({ok: true, id: id})
 })
 
-app.listen(3000, () => console.log('run express server'));
+app.listen(4000, () => console.log('run express server'));
