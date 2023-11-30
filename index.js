@@ -19,7 +19,6 @@ app.get('/', (req, res) => {
     res.send('Hello World');
 });
 
-// cartoon list
 app.get('/cartoon', (req, res) => {
     let temp = req.query.page;
     const PAGE = (1<=temp)? temp-1: 0;
@@ -44,7 +43,7 @@ app.get('/cartoon', (req, res) => {
         })
     });
 })
-// writer list
+
 app.get('/writer', (req, res) => {
     const { page, id, nickname } = req.query;
     const PAGE_LIMIT = 2;
@@ -79,23 +78,36 @@ app.get('/writer', (req, res) => {
         })
     });
 })
-app.post('/api/post', (req, res) => {
-    const { id, name } = req.body;
-    res.json({ok: true, id: id, name: name})
-})
-app.put('/api/put/:id', (req, res) => {
-    const { id } = req.params
-    const { name } = req.body
-    res.json({ok: true, id: id, name: name})
-})
-app.patch('/api/patch/:id', (req, res) => {
-    const { id } = req.params
-    const { name } = req.body
-    res.json({ok: true, id: id, name: name})
-})
-app.delete('/api/delete/:id', (req, res) => {
-    const { id } = req.params;
-    res.json({ok: true, id: id})
+
+app.get('/info', (req, res) => {
+    let temp = req.query.page;
+    const PAGE = (1<=temp)? temp-1: 0;
+    const PAGE_START = PAGE * PAGE_LIMIT;
+    const ID = req.query.id;
+    const NICKNAME = req.query.nickname;
+
+    let sql = '';
+    sql += `SELECT title, date, recommend FROM cartoon WHERE writer_id = '${ID}' AND writer_nickname = '${NICKNAME}'`;
+    sql += ` ORDER BY id DESC LIMIT ${PAGE_START}, ${PAGE_LIMIT};`
+
+    POOL.getConnection((err, conn) => {
+        if (err) {
+            if (conn) {
+                conn.release()
+            }
+            res.json({ok:false, err});
+            return;
+        }
+        conn.query(sql, (err, result) => {
+            conn.release();
+            if(err) {
+                res.json({ok:false, err});
+                return;
+            }else{
+                res.json({ok:true, result});
+            }
+        })
+    });
 })
 
 app.listen(4000, () => console.log('run express server'));
