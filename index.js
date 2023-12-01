@@ -15,34 +15,33 @@ app.use(cors({
 
 const PAGE_LIMIT = 5;
 
-app.get('/', (req, res) => {
-    res.send('Hello World');
-});
-
-app.get('/cartoon', (req, res) => {
+app.get('/cartoon', async (req, res) => {
     let temp = req.query.page;
     const PAGE = (1<=temp)? temp-1: 0;
     const PAGE_START = PAGE * PAGE_LIMIT;
-    
-    POOL.getConnection((err, conn) => {
-        if (err) {
-            if (conn) {
-                conn.release()
+    const LIMIT = ` limit ${PAGE_START}, ${PAGE_LIMIT};`;
+
+    const countSql = `SELECT COUNT(*) AS 'count' FROM cartoon`;
+
+    const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
+
+    if(count > 0){
+        const listSql = `SELECT * FROM cartoonz ORDER BY id DESC`+LIMIT;
+        const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
+        if(list){
+            const result = {
+                ok: true,
+                count: count,
+                list: list
             }
-            res.json({ok:false, err});
-            return;
+            res.json(result);
+        }else{
+            res.json({ok:false, message:'에러발생'});
         }
-        conn.query(`select * from cartoon where 1=1 order by id desc limit ${PAGE_START}, ${PAGE_LIMIT};`, (err, result) => {
-            conn.release();
-            if(err) {
-                res.json({ok:false, err});
-                return;
-            }else{
-                res.json({ok:true, result});
-            }
-        })
-    });
-})
+    }else{
+        res.json({ok:false, message:'없음'});
+    }
+});
 
 app.get('/writer', (req, res) => {
     const { page, id, nickname } = req.query;
@@ -108,6 +107,26 @@ app.get('/info', (req, res) => {
             }
         })
     });
-})
+});
+
+function runSql(sql, values) {
+    return new Promise((resolve, reject) => {
+       POOL.getConnection((err, conn) => {
+        if (err) {
+            if (conn) {
+                conn.release()
+            }
+            reject(err);
+        }
+        conn.query(sql, values, (err, rows) => {
+            conn.release();
+            if (err) {
+                reject(err);
+            }
+            resolve(rows);
+        });
+      });
+    });
+}
 
 app.listen(4000, () => console.log('run express server'));
