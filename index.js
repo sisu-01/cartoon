@@ -19,14 +19,14 @@ app.get('/cartoon', async (req, res) => {
     let temp = req.query.page;
     const PAGE = (1<=temp)? temp-1: 0;
     const PAGE_START = PAGE * PAGE_LIMIT;
-    const LIMIT = ` limit ${PAGE_START}, ${PAGE_LIMIT};`;
+    const LIMIT = ` limit ${PAGE_START}, ${PAGE_LIMIT}`;
 
     const countSql = `SELECT COUNT(*) AS 'count' FROM cartoon`;
 
     const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
 
     if(count > 0){
-        const listSql = `SELECT * FROM cartoonz ORDER BY id DESC`+LIMIT;
+        const listSql = `SELECT * FROM cartoon ORDER BY id DESC`+LIMIT;
         const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
         if(list){
             const result = {
