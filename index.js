@@ -13,30 +13,28 @@ app.use(cors({
     ]
 }));
 
-const PAGE_LIMIT = 5;
+const PER_PAGE = 5;
 
 app.get('/cartoon', async (req, res) => {
-    let temp = req.query.page;
-    const PAGE = (1<=temp)? temp-1: 0;
-    const PAGE_START = PAGE * PAGE_LIMIT;
-    const LIMIT = ` limit ${PAGE_START}, ${PAGE_LIMIT}`;
-
+    let temp = Number(req.query.page);
+    const page = (temp < 1)? 1 : temp;
+    
     const countSql = `SELECT COUNT(*) AS 'count' FROM cartoon`;
-
     const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
 
-    if(count > 0){
-        const listSql = `SELECT * FROM cartoon ORDER BY id DESC`+LIMIT;
+    if (count > 0) {
+
+        const START_PAGE = (page - 1) * PER_PAGE;
+        const listSql = `SELECT * FROM cartoon ORDER BY id DESC limit ${START_PAGE}, ${PER_PAGE}`;
         const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
+
         if(list){
-            let pagination = {
-                last: Math.ceil(count / PAGE_LIMIT),
-            }
             const result = {
                 ok: true,
+                page: page,
                 count: count,
-                list: list,
-                pagination: pagination,
+                perPage: PER_PAGE,
+                list: list
             }
             res.json(result);
         }else{
@@ -49,15 +47,15 @@ app.get('/cartoon', async (req, res) => {
 
 app.get('/writer', (req, res) => {
     const { page, id, nickname } = req.query;
-    const PAGE_LIMIT = 2;
-    const PAGE_START = page * PAGE_LIMIT;
+    const PER_PAGE = 2;
+    const START_PAGE = page * PER_PAGE;
 
     let sql = '';
     sql += `select * from writer where 1=1`;
     if(page === undefined){
-        sql += ` limit 0, ${PAGE_LIMIT}`;
+        sql += ` limit 0, ${PER_PAGE}`;
     }else{
-        sql += ` limit ${PAGE_START}, ${PAGE_LIMIT}`;
+        sql += ` limit ${START_PAGE}, ${PER_PAGE}`;
     }
     sql += ``;
     sql += ``;
@@ -85,13 +83,13 @@ app.get('/writer', (req, res) => {
 app.get('/info', (req, res) => {
     let temp = req.query.page;
     const PAGE = (1<=temp)? temp-1: 0;
-    const PAGE_START = PAGE * PAGE_LIMIT;
+    const START_PAGE = PAGE * PER_PAGE;
     const ID = req.query.id;
     const NICKNAME = req.query.nickname;
 
     let sql = '';
     sql += `SELECT id, title, date, recommend FROM cartoon WHERE writer_id = '${ID}' AND writer_nickname = '${NICKNAME}'`;
-    sql += ` ORDER BY id DESC LIMIT ${PAGE_START}, ${PAGE_LIMIT};`
+    sql += ` ORDER BY id DESC LIMIT ${START_PAGE}, ${PER_PAGE};`
 
     POOL.getConnection((err, conn) => {
         if (err) {
