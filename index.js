@@ -29,10 +29,14 @@ app.get('/cartoon', async (req, res) => {
         const listSql = `SELECT * FROM cartoon ORDER BY id DESC`+LIMIT;
         const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
         if(list){
+            let pagination = {
+                last: Math.ceil(count / PAGE_LIMIT),
+            }
             const result = {
                 ok: true,
                 count: count,
-                list: list
+                list: list,
+                pagination: pagination,
             }
             res.json(result);
         }else{
