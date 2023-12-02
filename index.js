@@ -16,13 +16,31 @@ app.get('/cartoon', async (req, res) => {
     let temp = Number(req.query.page);
     const page = (temp < 1)? 1 : temp;
     
-    const countSql = `SELECT COUNT(*) AS 'count' FROM cartoon`;
+    let countSql = '';
+    countSql += `SELECT COUNT(*) AS 'count' FROM cartoon`;
+    if (false) {
+        countSql += ` WHERE 1=1`;
+    } else {
+        countSql += ` WHERE recommend > 300`;
+    }
     const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
 
     if (count > 0) {
 
         const START_PAGE = (page - 1) * PER_PAGE;
-        const listSql = `SELECT * FROM cartoon ORDER BY id DESC limit ${START_PAGE}, ${PER_PAGE}`;
+        let listSql = '';
+        listSql += `SELECT * FROM cartoon`;
+        if (false) {
+            listSql += ` WHERE 1=1`;
+        } else {
+            listSql += ` WHERE recommend > 300`;
+        }
+        if (true) {
+            listSql += ` ORDER BY id DESC`;
+        } else {
+            listSql += ` ORDER BY recommend DESC`;
+        }
+        listSql += ` limit ${START_PAGE}, ${PER_PAGE}`;
         const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
 
         if(list){
