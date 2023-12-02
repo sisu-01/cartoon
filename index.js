@@ -77,35 +77,37 @@ app.get('/writer', (req, res) => {
     });
 })
 
-app.get('/info', (req, res) => {
-    let temp = req.query.page;
-    const PAGE = (1<=temp)? temp-1: 0;
-    const START_PAGE = PAGE * PER_PAGE;
-    const ID = req.query.id;
-    const NICKNAME = req.query.nickname;
+app.get('/info', async (req, res) => {
+    let temp = Number(req.query.page);
+    const page = (temp < 1)? 1 : temp;
+    const id = req.query.id;
+    const nickname = req.query.nickname;
 
-    let sql = '';
-    sql += `SELECT id, title, date, recommend FROM cartoon WHERE writer_id = '${ID}' AND writer_nickname = '${NICKNAME}'`;
-    sql += ` ORDER BY id DESC LIMIT ${START_PAGE}, ${PER_PAGE};`
+    const countSql = `SELECT COUNT(*) AS 'count' FROM cartoon WHERE writer_id = '${id}' AND writer_nickname = '${nickname}'`;
+    const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
 
-    POOL.getConnection((err, conn) => {
-        if (err) {
-            if (conn) {
-                conn.release()
+    if (count > 0) {
+
+        const START_PAGE = (page - 1) * PER_PAGE;
+        const listSql = `SELECT * FROM cartoon WHERE writer_id = '${id}' AND writer_nickname = '${nickname}' ORDER BY id DESC limit ${START_PAGE}, ${PER_PAGE}`;
+        const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
+
+        if(list){
+            const result = {
+                ok: true,
+                page: page,
+                count: count,
+                perPage: PER_PAGE,
+                list: list
             }
-            res.json({ok:false, err});
-            return;
+            res.json(result);
+        }else{
+            res.json({ok:false, message:'에러발생'});
         }
-        conn.query(sql, (err, result) => {
-            conn.release();
-            if(err) {
-                res.json({ok:false, err});
-                return;
-            }else{
-                res.json({ok:true, result});
-            }
-        })
-    });
+
+    } else {
+        res.json({ok:false, message:'없음'});
+    }
 });
 
 function runSql(sql, values) {
