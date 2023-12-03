@@ -100,6 +100,7 @@ app.get('/info', async (req, res) => {
     const page = (temp < 1)? 1 : temp;
     const id = req.query.id;
     const nickname = req.query.nickname;
+    const order = req.query.order === 'true';
 
     const countSql = `SELECT COUNT(*) AS 'count' FROM cartoon WHERE writer_id = '${id}' AND writer_nickname = '${nickname}'`;
     const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
@@ -107,7 +108,15 @@ app.get('/info', async (req, res) => {
     if (count > 0) {
 
         const START_PAGE = (page - 1) * PER_PAGE;
-        const listSql = `SELECT * FROM cartoon WHERE writer_id = '${id}' AND writer_nickname = '${nickname}' ORDER BY id DESC limit ${START_PAGE}, ${PER_PAGE}`;
+        let listSql = '';
+        listSql += `SELECT * FROM cartoon`;
+        listSql += ` WHERE (writer_id = '${id}' AND writer_nickname = '${nickname}')`;
+        if (order) {
+            listSql += ` ORDER BY recommend DESC`;
+        } else {
+            listSql += ` ORDER BY id DESC`;
+        }
+        listSql += ` limit ${START_PAGE}, ${PER_PAGE}`;
         const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
 
         if(list){
