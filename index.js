@@ -101,8 +101,14 @@ app.get('/info', async (req, res) => {
     const id = req.query.id;
     const nickname = req.query.nickname;
     const order = req.query.order === 'true';
+    const cut = Number(req.query.cut) || false;
+    console.log(cut);
 
-    const countSql = `SELECT COUNT(*) AS 'count' FROM cartoon WHERE writer_id = '${id}' AND writer_nickname = '${nickname}'`;
+    let countSql = '';
+    countSql += `SELECT COUNT(*) AS 'count' FROM cartoon WHERE (writer_id = '${id}' AND writer_nickname = '${nickname}')`;
+    if (cut) {
+        countSql += ` AND recommend > ${cut}`;
+    }
     const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
 
     if (count > 0) {
@@ -111,6 +117,9 @@ app.get('/info', async (req, res) => {
         let listSql = '';
         listSql += `SELECT * FROM cartoon`;
         listSql += ` WHERE (writer_id = '${id}' AND writer_nickname = '${nickname}')`;
+        if (cut) {
+            listSql += ` AND recommend > ${cut}`;
+        }
         if (order) {
             listSql += ` ORDER BY recommend DESC`;
         } else {
