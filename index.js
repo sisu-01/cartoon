@@ -15,7 +15,7 @@ const PER_PAGE = 5;
 app.get('/cartoon', async (req, res) => {
     let temp = Number(req.query.page);
     const page = (temp < 1)? 1 : temp;
-    const order = req.query.order === 'true';
+    const sort = req.query.sort === 'true';
     const cut = Number(req.query.cut) || false;
     
     let countSql = '';
@@ -33,7 +33,7 @@ app.get('/cartoon', async (req, res) => {
         if (cut) {
             countSql += ` AND recommend >= ${cut}`;
         }
-        if (order) {
+        if (sort) {
             listSql += ` ORDER BY recommend DESC`;
         } else {
             listSql += ` ORDER BY id DESC`;
@@ -64,7 +64,7 @@ app.get('/info', async (req, res) => {
     //수정 id랑 nickname sql 인잭션 방지해야돼;
     const id = req.query.id;
     const nickname = req.query.nickname;
-    const order = req.query.order === 'true';
+    const sort = req.query.sort === 'true';
     const cut = Number(req.query.cut) || false;
 
     let countSql = '';
@@ -83,7 +83,7 @@ app.get('/info', async (req, res) => {
         if (cut) {
             listSql += ` AND recommend >= ${cut}`;
         }
-        if (order) {
+        if (sort) {
             listSql += ` ORDER BY recommend DESC`;
         } else {
             listSql += ` ORDER BY id DESC`;
