@@ -95,7 +95,6 @@ app.get('/info', async (req, res) => {
         if(list){
             const result = {
                 ok: true,
-                page: page,
                 count: count,
                 perPage: PER_PAGE,
                 list: list
