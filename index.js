@@ -31,7 +31,7 @@ app.get('/cartoon', async (req, res) => {
         let listSql = '';
         listSql += `SELECT * FROM cartoon WHERE 1=1`;
         if (cut) {
-            countSql += ` AND recommend >= ${cut}`;
+            listSql += ` AND recommend >= ${cut}`;
         }
         if (sort) {
             listSql += ` ORDER BY recommend DESC`;
