@@ -10,7 +10,7 @@ app.use(cors({
     'origin': '*',
 }));
 
-const PER_PAGE = 5;
+const PER_PAGE = 2;
 
 app.get('/cartoon', async (req, res) => {
     let temp = parseInt(req.query.page, 10) || 1;
@@ -63,20 +63,26 @@ app.get('/writer', async (req, res) => {
     const page = (temp < 1)? 1 : temp;
     
     let countSql = '';
-    countSql += `SELECT COUNT(*) AS 'count' FROM cartoon WHERE 1=1`;
+    countSql += `SELECT SUM(writer_group_count) AS 'count'`;
+    countSql += ` FROM (`;
+    countSql += ` SELECT COUNT(DISTINCT writer_id, writer_nickname) as writer_group_count`;
+    countSql += ` FROM cartoon`;
+    countSql += ` GROUP BY writer_id, writer_nickname`;
+    countSql += ` HAVING COUNT(*) > 1`;
+    countSql += ` ) AS writer_count`;
     const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
 
     if (count > 0) {
 
         const START_PAGE = (page - 1) * PER_PAGE;
         let listSql = '';
-        listSql += `SELECT writer_nickname, COUNT(*) AS 'count', AVG(recommend) AS 'average' FROM cartoon`;
+        listSql += `SELECT writer_id, writer_nickname, COUNT(*) AS 'count', AVG(recommend) AS 'average' FROM cartoon`;
         if (true) {
             listSql += ` WHERE 1=1`;
         } else {
             listSql += ` WHERE writer_id = 'a'`;
         }
-        listSql += ` GROUP BY writer_nickname HAVING count > 1`;
+        listSql += ` GROUP BY writer_id, writer_nickname HAVING count > 1`;
         if (true) {
             listSql += ` ORDER BY count DESC`;
         } else {
