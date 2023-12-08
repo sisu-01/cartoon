@@ -13,7 +13,7 @@ app.use(cors({
 const PER_PAGE = 5;
 
 app.get('/cartoon', async (req, res) => {
-    let temp = Number(req.query.page);
+    let temp = parseInt(req.query.page, 10) || 1;
     const page = (temp < 1)? 1 : temp;
     const sort = req.query.sort === 'true';
     const cut = Number(req.query.cut) || false;
@@ -38,7 +38,51 @@ app.get('/cartoon', async (req, res) => {
         } else {
             listSql += ` ORDER BY id DESC`;
         }
-        listSql += ` limit ${START_PAGE}, ${PER_PAGE}`;
+        listSql += ` LIMIT ${START_PAGE}, ${PER_PAGE}`;
+        const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
+
+        if(list){
+            const result = {
+                ok: true,
+                page: page,
+                count: count,
+                perPage: PER_PAGE,
+                list: list
+            }
+            res.json(result);
+        }else{
+            res.json({ok:false, message:'에러발생'});
+        }
+    }else{
+        res.json({ok:false, message:'없음'});
+    }
+});
+
+app.get('/writer', async (req, res) => {
+    let temp = parseInt(req.query.page, 10) || 1;
+    const page = (temp < 1)? 1 : temp;
+    
+    let countSql = '';
+    countSql += `SELECT COUNT(*) AS 'count' FROM cartoon WHERE 1=1`;
+    const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
+
+    if (count > 0) {
+
+        const START_PAGE = (page - 1) * PER_PAGE;
+        let listSql = '';
+        listSql += `SELECT writer_nickname, COUNT(*) AS 'count', AVG(recommend) AS 'average' FROM cartoon`;
+        if (true) {
+            listSql += ` WHERE 1=1`;
+        } else {
+            listSql += ` WHERE writer_id = 'a'`;
+        }
+        listSql += ` GROUP BY writer_nickname HAVING count > 1`;
+        if (true) {
+            listSql += ` ORDER BY count DESC`;
+        } else {
+            listSql += ` ORDER BY average DESC`;
+        }
+        listSql += ` LIMIT ${START_PAGE}, ${PER_PAGE}`;
         const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
 
         if(list){
@@ -59,7 +103,7 @@ app.get('/cartoon', async (req, res) => {
 });
 
 app.get('/info', async (req, res) => {
-    let temp = Number(req.query.page);
+    let temp = parseInt(req.query.page, 10) || 1;
     const page = (temp < 1)? 1 : temp;
     //수정 id랑 nickname sql 인잭션 방지해야돼;
     const id = req.query.id;
@@ -88,8 +132,7 @@ app.get('/info', async (req, res) => {
         } else {
             listSql += ` ORDER BY id DESC`;
         }
-        listSql += ` limit ${START_PAGE}, ${PER_PAGE}`;
-        console.log(listSql);
+        listSql += ` LIMIT ${START_PAGE}, ${PER_PAGE}`;
         const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
 
         if(list){
