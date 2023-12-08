@@ -10,7 +10,7 @@ app.use(cors({
     'origin': '*',
 }));
 
-const PER_PAGE = 2;
+const PER_PAGE = 10;
 
 app.get('/cartoon', async (req, res) => {
     let temp = parseInt(req.query.page, 10) || 1;
