@@ -76,7 +76,7 @@ app.get('/writer', async (req, res) => {
 
         const START_PAGE = (page - 1) * PER_PAGE;
         let listSql = '';
-        listSql += `SELECT writer_id, writer_nickname, COUNT(*) AS 'count', AVG(recommend) AS 'average' FROM cartoon`;
+        listSql += `SELECT writer_id, writer_nickname, COUNT(*) AS 'count', ROUND(AVG(recommend)) AS 'average' FROM cartoon`;
         if (true) {
             listSql += ` WHERE 1=1`;
         } else {
