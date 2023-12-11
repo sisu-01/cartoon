@@ -61,6 +61,7 @@ app.get('/cartoon', async (req, res) => {
 app.get('/writer', async (req, res) => {
     let temp = parseInt(req.query.page, 10) || 1;
     const page = (temp < 1)? 1 : temp;
+    const sort = parseInt(req.query.sort, 10) || 1;
     
     let countSql = '';
     countSql += `SELECT SUM(writer_group_count) AS 'count'`;
@@ -76,17 +77,21 @@ app.get('/writer', async (req, res) => {
 
         const START_PAGE = (page - 1) * PER_PAGE;
         let listSql = '';
-        listSql += `SELECT writer_id, writer_nickname, COUNT(*) AS 'count', ROUND(AVG(recommend)) AS 'average' FROM cartoon`;
+        listSql += `SELECT writer_id, writer_nickname, date, COUNT(*) AS 'count', ROUND(AVG(recommend)) AS 'average' FROM cartoon`;
         if (true) {
             listSql += ` WHERE 1=1`;
         } else {
             listSql += ` WHERE writer_id = 'a'`;
         }
         listSql += ` GROUP BY writer_id, writer_nickname HAVING count > 1`;
-        if (true) {
-            listSql += ` ORDER BY count DESC`;
-        } else {
+        if (sort === 1) {//가나다
+            listSql += ` ORDER BY writer_nickname ASC`;
+        } else if (sort === 2) {//개추 평균
             listSql += ` ORDER BY average DESC`;
+        } else if (sort === 3) {//데뷔일
+            listSql += ` ORDER BY id DESC`;
+        } else if (sort === 4) {//만화수
+            listSql += ` ORDER BY count DESC`;
         }
         listSql += ` LIMIT ${START_PAGE}, ${PER_PAGE}`;
         const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
