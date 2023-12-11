@@ -88,8 +88,8 @@ app.get('/writer', async (req, res) => {
             listSql += ` ORDER BY writer_nickname ASC`;
         } else if (sort === 2) {//개추 평균
             listSql += ` ORDER BY average DESC`;
-        } else if (sort === 3) {//데뷔일
-            listSql += ` ORDER BY id DESC`;
+        } else if (sort === 3) {//첫 념글
+            listSql += ` ORDER BY id ASC`;
         } else if (sort === 4) {//만화수
             listSql += ` ORDER BY count DESC`;
         }
