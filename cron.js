@@ -74,18 +74,22 @@ function makeValues($, el) {
     return [writer_values, cartoon_values];
 }
 
-async function main(first=false) {
-    const result = await runSql('SELECT id FROM cartoon WHERE 1=1 ORDER BY id DESC LIMIT 1;').then(data => {return data}).catch(()=>{return []});
-
-    if (!first && result[0] === undefined) {
-        return false;
-    } else {
-        const newest = first? 1 : result[0]['id'];
-        scraping(newest);
-    }
+function main(first=false) {
+    runSql('SELECT id FROM cartoon WHERE 1=1 ORDER BY id DESC LIMIT 1;')
+    .then(data => {
+        if (!first && data[0] === undefined) {
+            return false;
+        } else {
+            const newest = first? 1 : data[0]['id'];
+            scraping(newest);
+        }
+    })
+    .catch(e => {
+        console.log(e);
+    });
 }
-
 main(false);
+
 //const isTwoWeek = 14 <= Math.ceil((new Date().setHours(0, 0, 0, 0)-date) / (1000 * 3600 * 24));
 //if (!isTwoWeek) return;
 
