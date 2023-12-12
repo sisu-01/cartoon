@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const cheerio = require('cheerio');
+const levenshtein = require('fast-levenshtein');
 const POOL = require('./pool.js');
 
 let count = 0;
@@ -88,3 +89,39 @@ function main(first=false) {
     });
 }
 //main(false);
+
+function test() {
+    //runSql('SELECT id FROM cartoon WHERE 시리즈가 아닌 놈들만~ AND ( writer_id = '' AND writer_id = '') ORDER BY id DESC LIMIT 1;')
+    const t1 = '경제툰2) 탐욕의 끝 부동산 대침체4.manhwa';  // 기준
+    const t2 = '경제툰2) 새로운 기술? 인터넷 버블3.manhwa'; // 유사율 52퍼센트
+    const t3 = '경제툰2) 탐욕의 끝 부동산 대침체2.manhwa';  // 유사울 97퍼센트
+    const t4 = '대학원생이 된 천재 돌연변이 고블린 소녀 듀에르코 만화'; //유사율 0퍼센트
+
+    const len = t1.length;
+    const a = 100 / len;
+    let res = levenshtein.get(t1, t2);
+    console.log(len, res, res*a+'%');
+
+    const p1 = '내 약혼녀는zzzz 용 11';
+    const p2 = '내 약혼녀는 용 10';
+    const ll = p2.length; // 더 긴 놈으로?
+    const df = 100 / ll;
+    let z = levenshtein.get(p1, p2);
+    console.log(ll, z, z*df+'%');
+    
+    /*
+    
+    a = 400개의 게시글
+    a.forEach(i => {
+        a.forEach(j => {
+            const distance = levenshtein.get(i, j);
+        });
+    });
+
+ 
+    */
+
+
+}
+
+test();
