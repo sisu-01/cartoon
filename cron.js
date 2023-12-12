@@ -28,7 +28,7 @@ function runSql(sql, values) {
       });
     });
 }
-const loop = 11;
+const loop = 1469;
 async function scraping(newest) {
     console.log(`id ${newest}까지 간다`);
     for (let i=1; i < loop; i++) {
@@ -41,6 +41,11 @@ async function scraping(newest) {
             $('tbody > tr.us-post').map((i, el)=> {
                 const id = $(el).find('.gall_num').text();
                 if (newest >= id) throw 'break';
+                const DATE = new Date($(el).find('.gall_date').attr('title'));
+                const isTwoWeek = 14 <= Math.ceil((new Date().setHours(0, 0, 0, 0)-DATE) / (1000 * 3600 * 24));
+                if(!isTwoWeek){
+                    return;
+                }
                 const values = makeValues($, el);
                 runSql('INSERT IGNORE INTO writer SET ?', values[0])
                 .then(() => {
