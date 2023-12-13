@@ -28,10 +28,10 @@ function runSql(sql, values) {
       });
     });
 }
-const loop = 1469;
+const loop = 1467;
 async function scraping(newest) {
     console.log(`id ${newest}까지 간다`);
-    for (let i=1; i < loop; i++) {
+    for (let i=1; i <= loop; i++) {
         console.log(`${i}페이지`);
         const url = `https://gall.dcinside.com/board/lists/?id=cartoon&page=${i}&exception_mode=recommend`;
         const html = await fetch(url).then(res => res.text());
@@ -64,15 +64,16 @@ async function scraping(newest) {
 function makeValues($, el) {
     const date = new Date($(el).find('.gall_date').attr('title'));
     const writer_id = $(el).find('.gall_writer').attr('data-uid') === ''? 'a': $(el).find('.gall_writer').attr('data-uid');
+    const writer_nickname = $(el).find('.gall_writer > span > em').text().replaceAll(`'`, `\'`).replaceAll(`"`, `\"`);
     const writer_values = {
         id: writer_id,
-        nickname: $(el).find('.gall_writer').attr('data-nick'),
+        nickname: writer_nickname,
     }
     const cartoon_values = {
         id: $(el).find('.gall_num').text(),
         title: $(el).find('.gall_tit > a').first().text(),//.substr(0, 5),
         writer_id: writer_id,
-        writer_nickname: $(el).find('.gall_writer > span > em').text(),
+        writer_nickname: writer_nickname,
         date: date,
         recommend: $(el).find('.gall_recommend').text(),
     }
@@ -93,7 +94,7 @@ function main(first=false) {
         console.log(e);
     });
 }
-//main(false);
+main(false);
 
 function test() {
     //runSql('SELECT id FROM cartoon WHERE 시리즈가 아닌 놈들만~ AND ( writer_id = '' AND writer_id = '') ORDER BY id DESC LIMIT 1;')
@@ -105,14 +106,14 @@ function test() {
     const len = t1.length;
     const a = 100 / len;
     let res = levenshtein.get(t1, t2);
-    console.log(len, res, res*a+'%');
+    //console.log(len, res, res*a+'%');
 
     const p1 = '내 약혼녀는zzzz 용 11';
     const p2 = '내 약혼녀는 용 10';
     const ll = p2.length; // 더 긴 놈으로?
     const df = 100 / ll;
     let z = levenshtein.get(p1, p2);
-    console.log(ll, z, z*df+'%');
+    //console.log(ll, z, z*df+'%');
     
     /*
     
