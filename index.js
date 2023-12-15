@@ -86,14 +86,14 @@ app.get('/writer', async (req, res) => {
         listSql += `SELECT id, nickname, date, count, recommend, average FROM writer`;
         if (sort === 1) {//가나다
             listSql += ` ORDER BY nickname ASC`;
-        } else if (sort === 2) {//개추 평균
-            listSql += ` ORDER BY average DESC`;
-        } else if (sort === 3) {//첫 념글
+        } else if (sort === 2) {//첫 념글
             listSql += ` ORDER BY date ASC`;
-        } else if (sort === 4) {//만화수
+        } else if (sort === 3) {//작품 개수
             listSql += ` ORDER BY count DESC`;
-        } else if (sort === 5) {//누적 개추
+        } else if (sort === 4) {//누적 개추
             listSql += ` ORDER BY recommend DESC`;
+        } else if (sort === 5) {//개추 평균
+            listSql += ` ORDER BY average DESC`;
         }
         listSql += ` LIMIT ${START_PAGE}, ${PER_PAGE}`;
         const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
