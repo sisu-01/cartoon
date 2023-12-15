@@ -70,6 +70,7 @@ app.get('/writer', async (req, res) => {
 
         const START_PAGE = (page - 1) * PER_PAGE;
         let listSql = '';
+        /*
         listSql += `SELECT writer_id, writer_nickname, date, COUNT(*) AS 'count', ROUND(AVG(recommend)) AS 'average' FROM cartoon`;
         listSql += ` WHERE 1=1`;
         listSql += ` GROUP BY writer_id, writer_nickname`;
@@ -79,6 +80,16 @@ app.get('/writer', async (req, res) => {
             listSql += ` ORDER BY average DESC`;
         } else if (sort === 3) {//첫 념글
             listSql += ` ORDER BY id ASC`;
+        } else if (sort === 4) {//만화수
+            listSql += ` ORDER BY count DESC`;
+        }*/
+        listSql += `SELECT id, nickname, date, count, average FROM writer`;
+        if (sort === 1) {//가나다
+            listSql += ` ORDER BY nickname ASC`;
+        } else if (sort === 2) {//개추 평균
+            listSql += ` ORDER BY average DESC`;
+        } else if (sort === 3) {//첫 념글
+            listSql += ` ORDER BY date ASC`;
         } else if (sort === 4) {//만화수
             listSql += ` ORDER BY count DESC`;
         }
