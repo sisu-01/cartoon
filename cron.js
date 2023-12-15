@@ -47,7 +47,16 @@ async function scraping(newest) {
                     return;
                 }
                 const values = makeValues($, el);
-                runSql('INSERT IGNORE INTO writer SET ?', values[0])
+
+                let insertSql = '';
+                insertSql += `INSERT INTO writer SET ?`;
+                insertSql += ` ON DUPLICATE KEY`;
+                insertSql += ` UPDATE count = count+1,`;
+                insertSql += ` date = CASE`;
+                insertSql += ` WHEN '${values[1]['date']}' < date THEN '${values[1]['date']}' ELSE date END,`;
+                insertSql += ` recommend = recommend+${values[1]['recommend']},`;
+                insertSql += ` average = recommend / count`;
+                runSql(insertSql, values[0])
                 .then(() => {
                     runSql('INSERT IGNORE INTO cartoon SET ?', values[1])
                     .then(() => {
@@ -62,20 +71,26 @@ async function scraping(newest) {
 }
 
 function makeValues($, el) {
-    const date = new Date($(el).find('.gall_date').attr('title'));
+    const date = $(el).find('.gall_date').attr('title');
     const writer_id = $(el).find('.gall_writer').attr('data-uid') === ''? 'a': $(el).find('.gall_writer').attr('data-uid');
     const writer_nickname = $(el).find('.gall_writer > span > em').text().replaceAll(`'`, `\'`).replaceAll(`"`, `\"`);
+    const recommend = $(el).find('.gall_recommend').text();
+
     const writer_values = {
         id: writer_id,
         nickname: writer_nickname,
+        date: date,
+        count: 1,
+        recommend: recommend,
+        average: recommend,
     }
     const cartoon_values = {
         id: $(el).find('.gall_num').text(),
-        title: $(el).find('.gall_tit > a').first().text(),//.substr(0, 5),
+        title: $(el).find('.gall_tit > a').first().text(),
         writer_id: writer_id,
         writer_nickname: writer_nickname,
         date: date,
-        recommend: $(el).find('.gall_recommend').text(),
+        recommend: recommend,
     }
     return [writer_values, cartoon_values];
 }
@@ -94,7 +109,7 @@ function main(first=false) {
         console.log(e);
     });
 }
-//main(false);
+main(false);
 
 function test() {
     runSql(`SELECT title FROM cartoon WHERE ( writer_id = 'toeic945' AND writer_nickname = '급양만와') ORDER BY id ASC;`)
@@ -127,4 +142,4 @@ function test() {
     });
     */
 }
-test();
+//test();
