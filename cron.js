@@ -28,7 +28,7 @@ function runSql(sql, values) {
       });
     });
 }
-const loop = 1467;
+const loop = 1468;
 async function scraping(newest) {
     console.log(`id ${newest}까지 간다`);
     for (let i=1; i <= loop; i++) {
@@ -38,8 +38,9 @@ async function scraping(newest) {
         const $ = cheerio.load(html, null, false);
 
         try {
-            $('tbody > tr.us-post').map((i, el)=> {
-                const id = $(el).find('.gall_num').text();
+            $('tbody > tr.ub-content').map((i, el)=> {
+                const id = $(el).attr('data-no');
+                if (id === undefined) return ;
                 if (newest >= id) throw 'break';
                 const DATE = new Date($(el).find('.gall_date').attr('title'));
                 const isTwoWeek = 14 <= Math.ceil((new Date().setHours(0, 0, 0, 0)-DATE) / (1000 * 3600 * 24));
