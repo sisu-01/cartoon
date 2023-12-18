@@ -113,16 +113,20 @@ function main(first=false) {
 //main(false);
 
 function test() {
-    //runSql(`SELECT title FROM cartoon WHERE ( writer_id = 'toeic945' AND writer_nickname = '급양만와') ORDER BY id ASC;`)
-    runSql(`SELECT id, title FROM cartoon WHERE writer_nickname = '금요정' ORDER BY id ASC;`)
+    runSql(`SELECT id, title FROM cartoon WHERE ( writer_id = 'toeic945' AND writer_nickname = '급양만와') ORDER BY id ASC;`)
     .then(list => {
+        
         const series = {};
-    
+        const wow = [];
+
         let count = 0;
+
         while (true) {
             if (list.length === 0) {
                 break;
             }
+            const a = getCurrentTimestamp();
+            const tempSeries = {};
 
             const shift = list.shift();
             const [ base1, base2 ] = splitString(shift['title']);
@@ -142,12 +146,20 @@ function test() {
                 const sum = similarity1 + similarity2;
                 //수정 글이 길 수록 요구 퍼센트가 낮고 ex)경제툰)쌸라쌸라쌸라쌸라쌸라쌸라쌸라쌸라쌸라쌸라쌸라쌸라쌸라
                 //글이 짧을 수록 요구 서펜트가 높아야 한다ex)살인 -1 살인 -2
-                if (similarity1 >= 50 || similarity2 >= 50) {
+                //x = 길이
+                //-5/7 * x + ( 155 / 7 + 35 ) = 요구 퍼센트
+                if (similarity1 >= 35 || similarity2 >= 35) {
                     //console.log(`##합: ${similarity1+similarity2}% - 유사도: ${similarity1}% |`, title1, `\t\t유사도: ${similarity2}% |`, title2);
-                    if (series[count] === undefined) {
-                        series[count] = [{id: shift['id'], title: shift['title']}];
+                    if (series[a] === undefined) {
+                        series[a] = [{id: shift['id'], title: shift['title']}];
                     }
-                    series[count].push({id: e['id'], title: e['title']});
+                    if (Object.values(tempSeries).length === 0) {
+                        tempSeries['id'] = count;
+                        tempSeries['title'] = shift['title'];
+                        //tempSeries['list'] = [{id: shift['id'], title: shift['title']}];
+                    }
+                    series[a].push({id: e['id'], title: e['title']});
+                    //tempSeries['list'].push({id: e['id'], title: e['title']});
                     list.splice(i, 1);
                     forLoop = list.length;
                 } else {
@@ -156,37 +168,22 @@ function test() {
                 }
             }
             count++;
+            if (Object.values(tempSeries).length !== 0) wow.push(tempSeries);
         }
-        console.log(series);
+        //console.log(series);
+        //console.log('#############');
+        console.log(wow);
+        const values = wow.map(item => [item.id, item.title]);
+        runSql(`INSERT INTO series(id, title) VALUES ?`, [values])
+        .then(row => {
+            console.log(row);
+        })
+        .catch(e => {
+            console.log(e);
+        })
     })
 }
 test();
-//zz();
-
-function zz() {
-    const arr = ['경제1', '경제2', '여우1', '여우2', '수느'];
-
-    while(true) {
-
-        if (arr.length === 0) {
-            break;
-        }
-
-        let bb = arr.length
-        for (let i = 0; i < bb; ) {
-            console.log(i, bb);
-            console.log(arr[i]);
-            //arr.pop();
-            i++;
-            //bb = arr.length;
-        }
-        arr.pop();
-        arr.pop();
-        arr.pop();
-        arr.pop();
-        arr.pop();
-    }
-}
 
 function splitString(str) {
     let temp = str;
@@ -198,9 +195,6 @@ function splitString(str) {
     temp = temp.replaceAll('ㅇㅎ', '').replaceAll('스압', '');
     temp = temp.replace(/\d/g, '');//숫자 제거
     temp = temp.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/ ]/g, '');
-    /*
-    .replaceAll('', '')
-    */
     temp = temp.trimStart().trimEnd();
 
     const length = Math.ceil(temp.length / 2);
@@ -232,4 +226,20 @@ function findCommonCharacters(...strings) {
   
     // Set을 배열로 변환하여 출력
     return Array.from(commonCharacters).join('');
+}
+
+function getCurrentTimestamp() {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
+
+    const timestamp = `${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
+
+    return timestamp;
 }
