@@ -211,6 +211,47 @@ app.get('/series', async (req, res) => {
     }
 });
 
+app.get('/list', async (req, res) => {
+    let temp = parseInt(req.query.page, 10) || 1;
+    const page = (temp < 1)? 1 : temp;
+    const id = parseInt(req.query.id, 10) || false;
+    
+    if(!id) {
+        res.json({ok:false, message:'id 에러'});
+        return;
+    }
+
+    let countSql = '';
+    countSql += `SELECT COUNT(*) AS 'count' FROM cartoon WHERE series_id = ${id}`;
+    const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
+
+    if (count > 0) {
+
+        const START_PAGE = (page - 1) * PER_PAGE;
+        let listSql = '';
+        listSql += `SELECT * FROM cartoon`;
+        listSql += ` WHERE series_id = ${id}`;
+        listSql += ` ORDER BY id DESC`;
+        listSql += ` LIMIT ${START_PAGE}, ${PER_PAGE}`;
+        const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
+
+        if(list){
+            const result = {
+                ok: true,
+                count: count,
+                perPage: PER_PAGE,
+                list: list
+            }
+            res.json(result);
+        }else{
+            res.json({ok:false, message:'에러발생'});
+        }
+
+    } else {
+        res.json({ok:false, message:'없음'});
+    }
+});
+
 function runSql(sql, values) {
     return new Promise((resolve, reject) => {
        POOL.getConnection((err, conn) => {
