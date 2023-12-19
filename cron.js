@@ -155,9 +155,9 @@ function test() {
                     if (!haveSeries) {
                         haveSeries = true;
                         seriesList.push({id: baseId, title: baseTitle});
-                        seriesCartoon[baseId] = [{id: baseId}];
+                        seriesCartoon[baseId] = [baseId];
                     }
-                    seriesCartoon[baseId].push({id: e['id']});
+                    seriesCartoon[baseId].push(e['id']);
                     
                     list.splice(i, 1);
                     forLoop = list.length;
@@ -167,16 +167,19 @@ function test() {
                 }
             }
         }
-        console.log(seriesList);
-        console.log(seriesCartoon);
         const values = seriesList.map(item => [item.id, item.title]);
-        // runSql(`INSERT INTO series(id, title) VALUES ?`, [values])
-        // .then(row => {
-        //     console.log(row);
-        // })
-        // .catch(e => {
-        //     console.log(e);
-        // })
+        runSql(`INSERT INTO series(id, title) VALUES ?`, [values])
+        .then(row => {
+            for (let i in seriesCartoon) {
+                runSql(`UPDATE cartoon SET series_id = ${i} WHERE id IN (?)`, [seriesCartoon[i]])
+                .catch(e => {
+                    console.log(e);
+                })
+            }
+        })
+        .catch(e => {
+            console.log(e);
+        })
     })
 }
 test();
