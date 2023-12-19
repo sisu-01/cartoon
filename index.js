@@ -1,4 +1,4 @@
-const POOL = require('./pool.js');
+const runSql = require('./pool.js');
 const express = require('express');
 const cors = require('cors');
 require('./cron.js');
@@ -251,25 +251,5 @@ app.get('/list', async (req, res) => {
         res.json({ok:false, message:'없음'});
     }
 });
-
-function runSql(sql, values) {
-    return new Promise((resolve, reject) => {
-       POOL.getConnection((err, conn) => {
-        if (err) {
-            if (conn) {
-                conn.release()
-            }
-            reject(err);
-        }
-        conn.query(sql, values, (err, rows) => {
-            conn.release();
-            if (err) {
-                reject(err);
-            }
-            resolve(rows);
-        });
-      });
-    });
-}
 
 app.listen(4000, () => console.log('run express server'));

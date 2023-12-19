@@ -1,7 +1,7 @@
 const cron = require('node-cron');
 const cheerio = require('cheerio');
 const levenshtein = require('fast-levenshtein');
-const POOL = require('./pool.js');
+const runSql = require('./pool.js');
 
 let count = 0;
 //second(초), minute(분), hour(시), day-of-month(날짜), month(월), day-of-week(요일)
@@ -9,25 +9,6 @@ let count = 0;
 //     console.log(count++);
 // });
 
-function runSql(sql, values) {
-    return new Promise((resolve, reject) => {
-       POOL.getConnection((err, conn) => {
-        if (err) {
-            if (conn) {
-                conn.release()
-            }
-            reject(err);
-        }
-        conn.query(sql, values, (err, rows) => {
-            conn.release();
-            if (err) {
-                reject(err);
-            }
-            resolve(rows);
-        });
-      });
-    });
-}
 const loop = 1468;
 async function scraping(newest) {
     console.log(`id ${newest}까지 간다`);
