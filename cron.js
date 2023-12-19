@@ -111,9 +111,9 @@ function main(first=false) {
     });
 }
 //main(false);
-
+//test();
 function test() {
-    runSql(`SELECT id, title FROM cartoon WHERE ( writer_id = 'toeic945' AND writer_nickname = '급양만와') ORDER BY id ASC;`)
+    runSql(`SELECT id, title FROM cartoon WHERE ( writer_id = 'goldpixie' AND writer_nickname = '금요정') ORDER BY id ASC;`)
     .then(list => {
 
         const seriesList = [];
@@ -182,8 +182,6 @@ function test() {
         })
     })
 }
-test();
-
 function splitString(str) {
     let temp = str;
     temp = temp.replaceAll('MANHWA', '').replaceAll('manhwa', '').replaceAll('MANWHA', '').replaceAll('manwha', '').replaceAll('만화', '').replaceAll('만와', '');
