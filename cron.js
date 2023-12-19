@@ -115,25 +115,27 @@ function main(first=false) {
 function test() {
     runSql(`SELECT id, title FROM cartoon WHERE ( writer_id = 'toeic945' AND writer_nickname = '급양만와') ORDER BY id ASC;`)
     .then(list => {
-        
-        const series = {};
-        const wow = [];
 
-        let count = 0;
+        const seriesList = [];
+        const seriesCartoon = {};
 
         while (true) {
             if (list.length === 0) {
                 break;
             }
-            const a = getCurrentTimestamp();
-            const tempSeries = {};
+            
+            let haveSeries = false;
 
             const shift = list.shift();
-            const [ base1, base2 ] = splitString(shift['title']);
+            const baseId = shift['id'];
+            const baseTitle = shift['title'];
+
+            const [ base1, base2 ] = splitString(baseTitle);
 
             let forLoop = list.length;
             for (let i = 0; i < forLoop;) {
                 const e = list[i];
+
                 const [ title1, title2 ] = splitString(e['title']);
                 const len1 = base1.length > title1.length? base1.length : title1.length;
                 const len2 = base2.length > title2.length? base2.length : title2.length;
@@ -150,37 +152,31 @@ function test() {
                 //-5/7 * x + ( 155 / 7 + 35 ) = 요구 퍼센트
                 if (similarity1 >= 35 || similarity2 >= 35) {
                     //console.log(`##합: ${similarity1+similarity2}% - 유사도: ${similarity1}% |`, title1, `\t\t유사도: ${similarity2}% |`, title2);
-                    if (series[a] === undefined) {
-                        series[a] = [{id: shift['id'], title: shift['title']}];
+                    if (!haveSeries) {
+                        haveSeries = true;
+                        seriesList.push({id: baseId, title: baseTitle});
+                        seriesCartoon[baseId] = [{id: baseId}];
                     }
-                    if (Object.values(tempSeries).length === 0) {
-                        tempSeries['id'] = count;
-                        tempSeries['title'] = shift['title'];
-                        //tempSeries['list'] = [{id: shift['id'], title: shift['title']}];
-                    }
-                    series[a].push({id: e['id'], title: e['title']});
-                    //tempSeries['list'].push({id: e['id'], title: e['title']});
+                    seriesCartoon[baseId].push({id: e['id']});
+                    
                     list.splice(i, 1);
                     forLoop = list.length;
                 } else {
-                    i++;
                     //console.log(`합: ${similarity1+similarity2}% - 유사도: ${similarity1}% |`, title1, `\t\t유사도: ${similarity2}% |`, title2);
+                    i++;
                 }
             }
-            count++;
-            if (Object.values(tempSeries).length !== 0) wow.push(tempSeries);
         }
-        //console.log(series);
-        //console.log('#############');
-        console.log(wow);
-        const values = wow.map(item => [item.id, item.title]);
-        runSql(`INSERT INTO series(id, title) VALUES ?`, [values])
-        .then(row => {
-            console.log(row);
-        })
-        .catch(e => {
-            console.log(e);
-        })
+        console.log(seriesList);
+        console.log(seriesCartoon);
+        const values = seriesList.map(item => [item.id, item.title]);
+        // runSql(`INSERT INTO series(id, title) VALUES ?`, [values])
+        // .then(row => {
+        //     console.log(row);
+        // })
+        // .catch(e => {
+        //     console.log(e);
+        // })
     })
 }
 test();
@@ -226,20 +222,4 @@ function findCommonCharacters(...strings) {
   
     // Set을 배열로 변환하여 출력
     return Array.from(commonCharacters).join('');
-}
-
-function getCurrentTimestamp() {
-    const now = new Date();
-
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
-
-    const timestamp = `${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
-
-    return timestamp;
 }
