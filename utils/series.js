@@ -2,7 +2,7 @@ const levenshtein = require('fast-levenshtein');
 const runSql = require('./pool.js');
 
 function test() {
-    runSql(`SELECT id, title FROM cartoon WHERE writer_nickname = '급양만와' ORDER BY id ASC;`)
+    runSql(`SELECT id, title FROM cartoon WHERE writer_nickname = '김말복' ORDER BY id ASC;`)
     .then(list => {
 
         const seriesList = [];
@@ -35,8 +35,8 @@ function test() {
                 const similarity1 = 100 - Math.round(distance1 * percent1);
                 const similarity2 = 100 - Math.round(distance2 * percent2);
                 const sum = similarity1 + similarity2;
-                //수정 글이 길 수록 요구 퍼센트가 낮고 ex)경제툰)쌸라쌸라쌸라쌸라쌸라쌸라쌸라쌸라쌸라쌸라쌸라쌸라쌸라
-                //글이 짧을 수록 요구 서펜트가 높아야 한다ex)살인 -1 살인 -2
+                //수정 글이 길 수록 요구 퍼센트가 낮고
+                //글이 짧을 수록 요구 서펜트가 높아야 한다
                 //x = 길이
                 //-5/7 * x + ( 155 / 7 + 35 ) = 요구 퍼센트
                 if (similarity1 >= 35 || similarity2 >= 35) {
@@ -72,17 +72,25 @@ function test() {
     })
 }
 
-function splitString(str) {
+function filter(str) {
     let temp = str;
     temp = temp.replaceAll('MANHWA', '').replaceAll('manhwa', '').replaceAll('MANWHA', '').replaceAll('manwha', '').replaceAll('만화', '').replaceAll('만와', '');
     temp = temp.replaceAll('프롤로그', '').replaceAll('에필로그', '').replaceAll('마지막화', '');
-    temp = temp.replaceAll('完', '').replaceAll('후기', '').replaceAll('(완)', '');
-    temp = temp.replaceAll('bgm', '').replaceAll('BGM', '');
-    temp = temp.replaceAll('공지', '').replaceAll('휴재', '');
-    temp = temp.replaceAll('ㅇㅎ', '').replaceAll('스압', '');
     temp = temp.replace(/\d/g, '');//숫자 제거
-    temp = temp.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/ ]/g, '');
+    temp = temp.replaceAll('후방)', '');
+    temp = temp.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '');
+    temp = temp.replaceAll('完', '').replaceAll('후기', '').replaceAll('완', '');
+    temp = temp.replaceAll('상', '').replaceAll('중', '').replaceAll('하', '');
+    temp = temp.replaceAll('上', '').replaceAll('中', '').replaceAll('下', '');
+    temp = temp.replaceAll('공지', '').replaceAll('휴재', '');
+    temp = temp.replaceAll('bgm', '').replaceAll('BGM', '');
+    temp = temp.replaceAll('ㅇㅎ', '').replaceAll('스압', '');
     temp = temp.trimStart().trimEnd();
+    return temp;
+}
+
+function splitString(str) {
+    const temp = filter(str);
 
     const length = Math.ceil(temp.length / 2);
     const firstHalf = temp.slice(0, length)
