@@ -1,6 +1,6 @@
-const runSql = require('./pool.js');
 const express = require('express');
 const cors = require('cors');
+const runSql = require('./utils/pool.js');
 require('./cron.js');
 
 const app = express();
