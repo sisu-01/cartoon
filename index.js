@@ -165,6 +165,52 @@ app.get('/info', async (req, res) => {
     }
 });
 
+app.get('/series', async (req, res) => {
+    let temp = parseInt(req.query.page, 10) || 1;
+    const page = (temp < 1)? 1 : temp;
+    //const sort = req.query.sort === 'true';
+    //const cut = Number(req.query.cut) || false;
+    
+    let countSql = '';
+    countSql += `SELECT COUNT(*) AS 'count' FROM series WHERE 1=1;`;
+    // if (cut) {
+    //     countSql += ` AND recommend >= ${cut}`;
+    // }
+    const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
+
+    if (count > 0) {
+
+        const START_PAGE = (page - 1) * PER_PAGE;
+        let listSql = '';
+        listSql += `SELECT * FROM series WHERE 1=1`;
+        // if (cut) {
+        //     listSql += ` AND recommend >= ${cut}`;
+        // }
+        // if (sort) {
+        //     listSql += ` ORDER BY recommend DESC`;
+        // } else {
+        //     listSql += ` ORDER BY id DESC`;
+        // }
+        listSql += ` LIMIT ${START_PAGE}, ${PER_PAGE}`;
+        const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
+
+        if(list){
+            const result = {
+                ok: true,
+                page: page,
+                count: count,
+                perPage: PER_PAGE,
+                list: list
+            }
+            res.json(result);
+        }else{
+            res.json({ok:false, message:'에러발생'});
+        }
+    }else{
+        res.json({ok:false, message:'없음'});
+    }
+});
+
 function runSql(sql, values) {
     return new Promise((resolve, reject) => {
        POOL.getConnection((err, conn) => {
