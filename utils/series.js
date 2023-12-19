@@ -8,6 +8,8 @@ function test() {
         const seriesList = [];
         const seriesCartoon = {};
 
+        const debugList = {};
+
         while (true) {
             if (list.length === 0) {
                 break;
@@ -22,10 +24,12 @@ function test() {
             const [ base1, base2 ] = splitString(baseTitle);
 
             let forLoop = list.length;
+            console.log(base1, base2);
             for (let i = 0; i < forLoop;) {
                 const e = list[i];
 
                 const [ title1, title2 ] = splitString(e['title']);
+                //수정 백분율 어케 하지
                 const len1 = base1.length > title1.length? base1.length : title1.length;
                 const len2 = base2.length > title2.length? base2.length : title2.length;
                 const percent1 = 100 / len1;
@@ -39,37 +43,73 @@ function test() {
                 //글이 짧을 수록 요구 서펜트가 높아야 한다
                 //x = 길이
                 //-5/7 * x + ( 155 / 7 + 35 ) = 요구 퍼센트
-                if (similarity1 >= 35 || similarity2 >= 35) {
-                    //console.log(`##합: ${similarity1+similarity2}% - 유사도: ${similarity1}% |`, title1, `\t\t유사도: ${similarity2}% |`, title2);
+                if (similarity1 >= 50 || similarity2 >= 50) {
+                    console.log(`\t####${title1}: ${similarity1}\t${title2}: ${similarity2}, ${len1}-${len2}`);
                     if (!haveSeries) {
                         haveSeries = true;
                         seriesList.push({id: baseId, title: baseTitle});
                         seriesCartoon[baseId] = [baseId];
+                        
+                        debugList[baseId] = {
+                            원제: baseTitle,
+                            앞: base1,
+                            뒤: base2,
+                            목록: [{
+                                원제: baseTitle,
+                                제목1: title1,
+                                유사1: similarity1,
+                                제목2: title2,
+                                유사2: similarity2,
+                                len1: len1,
+                                len2: len2,
+                            }]
+                        };
                     }
                     seriesCartoon[baseId].push(e['id']);
+
+                    debugList[baseId]['목록'].push({
+                        원제: e['title'],
+                        제목1: title1,
+                        유사1: similarity1,
+                        제목2: title2,
+                        유사2: similarity2,
+                        len1: len1,
+                        len2: len2,
+                    });
                     
                     list.splice(i, 1);
                     forLoop = list.length;
                 } else {
-                    //console.log(`합: ${similarity1+similarity2}% - 유사도: ${similarity1}% |`, title1, `\t\t유사도: ${similarity2}% |`, title2);
+                    console.log(`\t____${title1}: ${similarity1}\t${title2}: ${similarity2}, ${len1}-${len2}`);
                     i++;
                 }
             }
         }
-        const values = seriesList.map(item => [item.id, item.title]);
-        runSql(`INSERT INTO series(id, title) VALUES ?`, [values])
-        .then(row => {
-            for (let i in seriesCartoon) {
-                runSql(`UPDATE cartoon SET series_id = ${i} WHERE id IN (?)`, [seriesCartoon[i]])
-                .catch(e => {
-                    console.log(e);
-                })
-            }
-        })
-        .catch(e => {
-            console.log(e);
-        })
+        //printDebug(debugList);
+        
+        // const values = seriesList.map(item => [item.id, item.title]);
+        // runSql(`INSERT INTO series(id, title) VALUES ?`, [values])
+        // .then(row => {
+        //     for (let i in seriesCartoon) {
+        //         runSql(`UPDATE cartoon SET series_id = ${i} WHERE id IN (?)`, [seriesCartoon[i]])
+        //         .catch(e => {
+        //             console.log(e);
+        //         })
+        //     }
+        // })
+        // .catch(e => {
+        //     console.log(e);
+        // })
     })
+}
+function printDebug(debugList) {
+    for (let key in debugList) {
+        const e = debugList[key];
+        console.log(`원제: ${e['원제']}\t[${e['앞']}] [${e['뒤']}]`);
+        e['목록'].forEach(i => {
+            console.log(`\t${i['제목1']}: ${i['유사1']}\t${i['제목2']}: ${i['유사2']}, ${i['len1']}-${i['len2']}`);
+        })
+    }
 }
 
 function filter(str) {
@@ -77,24 +117,39 @@ function filter(str) {
     temp = temp.replaceAll('MANHWA', '').replaceAll('manhwa', '').replaceAll('MANWHA', '').replaceAll('manwha', '').replaceAll('만화', '').replaceAll('만와', '');
     temp = temp.replaceAll('프롤로그', '').replaceAll('에필로그', '').replaceAll('마지막화', '');
     temp = temp.replace(/\d/g, '');//숫자 제거
-    temp = temp.replaceAll('후방)', '');
+    temp = temp.replaceAll('후방)', '').replaceAll('혐)', '');
     temp = temp.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '');
-    temp = temp.replaceAll('完', '').replaceAll('후기', '').replaceAll('완', '');
-    temp = temp.replaceAll('상', '').replaceAll('중', '').replaceAll('하', '');
+    temp = temp.replaceAll('完', '').replaceAll('후기', '');
     temp = temp.replaceAll('上', '').replaceAll('中', '').replaceAll('下', '');
     temp = temp.replaceAll('공지', '').replaceAll('휴재', '');
     temp = temp.replaceAll('bgm', '').replaceAll('BGM', '');
     temp = temp.replaceAll('ㅇㅎ', '').replaceAll('스압', '');
-    temp = temp.trimStart().trimEnd();
+    //temp = temp.replaceAll(' ', '').trimStart().trimEnd();
     return temp;
 }
 
 function splitString(str) {
     const temp = filter(str);
 
-    const length = Math.ceil(temp.length / 2);
-    const firstHalf = temp.slice(0, length)
-    const secondHalf = temp.slice(length)
+    let length = Math.ceil(temp.length / 2);
+    if (temp[length] !== ' ') {
+        let i = 1;
+        while(true) {
+            const f = temp[length-i];
+            const b = temp[length+i];
+            if (b === ' ') {
+                length = length+i;
+                break;
+            }
+            if (f === ' ') {
+                length = length-i;
+                break;
+            };
+            i++;
+        }
+    };
+    const firstHalf = temp.slice(0, length).replaceAll(' ', '').trimStart().trimEnd();
+    const secondHalf = temp.slice(length).replaceAll(' ', '').trimStart().trimEnd();
     return [firstHalf, secondHalf];
 }
 
