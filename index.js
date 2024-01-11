@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const runSql = require('./utils/pool.js');
-require('./cron.js');
+//require('./cron.js');
+//이제 스크래핑, 시리즈 분류는 파이썬으로 하겠다.
 
 const app = express();
 app.use(express.json());
