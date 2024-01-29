@@ -169,14 +169,14 @@ app.get('/info', async (req, res) => {
 app.get('/series', async (req, res) => {
     let temp = parseInt(req.query.page, 10) || 1;
     const page = (temp < 1)? 1 : temp;
-    //const sort = req.query.sort === 'true';
-    //const cut = Number(req.query.cut) || false;
+    const sort = req.query.sort === 'true';
+    const cut = Number(req.query.cut) || false;
     
     let countSql = '';
-    countSql += `SELECT COUNT(*) AS 'count' FROM series WHERE 1=1;`;
-    // if (cut) {
-    //     countSql += ` AND recommend >= ${cut}`;
-    // }
+    countSql += `SELECT COUNT(*) AS 'count' FROM series WHERE 1=1`;
+    if (cut) {
+        countSql += ` AND average >= ${cut}`;
+    }
     const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
 
     if (count > 0) {
@@ -184,14 +184,14 @@ app.get('/series', async (req, res) => {
         const START_PAGE = (page - 1) * PER_PAGE;
         let listSql = '';
         listSql += `SELECT * FROM series WHERE 1=1`;
-        // if (cut) {
-        //     listSql += ` AND recommend >= ${cut}`;
-        // }
-        // if (sort) {
-        //     listSql += ` ORDER BY recommend DESC`;
-        // } else {
-        //     listSql += ` ORDER BY id DESC`;
-        // }
+        if (cut) {
+            listSql += ` AND average >= ${cut}`;
+        }
+        if (sort) {
+            listSql += ` ORDER BY average DESC`;
+        } else {
+            listSql += ` ORDER BY id DESC`;
+        }
         listSql += ` LIMIT ${START_PAGE}, ${PER_PAGE}`;
         const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
 
