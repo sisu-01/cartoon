@@ -253,4 +253,40 @@ app.get('/list', async (req, res) => {
     }
 });
 
+app.get('/listInfo', async (req, res) => {
+    const id = parseInt(req.query.id, 10) || false;
+    
+    if(!id) {
+        res.json({ok:false, message:'id 에러'});
+        return;
+    }
+
+    let countSql = '';
+    countSql += `SELECT COUNT(*) AS 'count' FROM series WHERE id = ${id}`;
+    const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
+
+    if (count > 0) {
+
+        let listSql = '';
+        listSql += `SELECT writer_id, writer_nickname, count FROM series`;
+        listSql += ` WHERE id = ${id}`;
+        const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
+        
+        if(list){
+            const result = {
+                ok: true,
+                writer_id: list[0]['writer_id'],
+                writer_nickname: list[0]['writer_nickname'],
+                count: list[0]['count'],
+            }
+            res.json(result);
+        }else{
+            res.json({ok:false, message:'에러발생'});
+        }
+
+    } else {
+        res.json({ok:false, message:'없음'});
+    }
+});
+
 app.listen(4000, () => console.log('run express server'));
