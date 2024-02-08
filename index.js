@@ -167,6 +167,7 @@ app.get('/info', async (req, res) => {
 });
 
 app.get('/series', async (req, res) => {
+    const PER_PAGE = 36;
     let temp = parseInt(req.query.page, 10) || 1;
     const page = (temp < 1)? 1 : temp;
     const sort = req.query.sort === 'true';
