@@ -13,7 +13,7 @@ app.use(cors({
 
 const PER_PAGE = 10;
 
-app.get('/cartoon', async (req, res) => {
+app.get('/api/cartoon', async (req, res) => {
     let temp = parseInt(req.query.page, 10) || 1;
     const page = (temp < 1)? 1 : temp;
     const sort = req.query.sort === 'true';
@@ -59,7 +59,7 @@ app.get('/cartoon', async (req, res) => {
     }
 });
 
-app.get('/writer', async (req, res) => {
+app.get('/api/writer', async (req, res) => {
     let temp = parseInt(req.query.page, 10) || 1;
     const page = (temp < 1)? 1 : temp;
     const sort = parseInt(req.query.sort, 10) || 1;
@@ -116,7 +116,7 @@ app.get('/writer', async (req, res) => {
     }
 });
 
-app.get('/info', async (req, res) => {
+app.get('/api/info', async (req, res) => {
     let temp = parseInt(req.query.page, 10) || 1;
     const page = (temp < 1)? 1 : temp;
     //수정 id랑 nickname sql 인잭션 방지해야돼;
@@ -166,7 +166,7 @@ app.get('/info', async (req, res) => {
     }
 });
 
-app.get('/series', async (req, res) => {
+app.get('/api/series', async (req, res) => {
     const PER_PAGE = 36;
     let temp = parseInt(req.query.page, 10) || 1;
     const page = (temp < 1)? 1 : temp;
@@ -213,7 +213,7 @@ app.get('/series', async (req, res) => {
     }
 });
 
-app.get('/list', async (req, res) => {
+app.get('/api/list', async (req, res) => {
     let temp = parseInt(req.query.page, 10) || 1;
     const page = (temp < 1)? 1 : temp;
     const id = parseInt(req.query.id, 10) || false;
@@ -254,7 +254,7 @@ app.get('/list', async (req, res) => {
     }
 });
 
-app.get('/listInfo', async (req, res) => {
+app.get('/api/listInfo', async (req, res) => {
     const id = parseInt(req.query.id, 10) || false;
     
     if(!id) {
