@@ -1,15 +1,30 @@
 const express = require('express');
 const cors = require('cors');
 const runSql = require('./utils/pool.js');
+const CONFIG = require('./config/config.json');
 //require('./cron.js');
 //이제 스크래핑, 시리즈 분류는 파이썬으로 하겠다.
 
 const app = express();
+const whitelist = CONFIG['whiteList'];
+const corsOptions = {
+    origin: function (origin, callback) {
+        if (whitelist.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            return callback(new Error('Not allowed by CORS'));
+        }
+    },
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
-app.use(cors({
-    'origin': '*',
-}));
+app.use(function (err, req, res, next) {
+    if (err.message === 'Not allowed by CORS') {
+        return res.status(403).json({ error: 'Not allowed by CORS' });
+    }
+    next(err);
+});
 
 const PER_PAGE = 10;
 
