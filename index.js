@@ -284,13 +284,15 @@ app.get('/api/listInfo', async (req, res) => {
     if (count > 0) {
 
         let listSql = '';
-        listSql += `SELECT writer_id, writer_nickname, count FROM series`;
-        listSql += ` WHERE id = ${id}`;
+        listSql += `SELECT s.writer_id, s.writer_nickname, s.count,`;
+        listSql += ` (SELECT c.title FROM cartoon c WHERE c.series_id = s.id ORDER BY c.id ASC LIMIT 1) AS title`;
+        listSql += ` FROM series s WHERE s.id = ${id}`;
         const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
         
         if(list){
             const result = {
                 ok: true,
+                title: list[0]['title'],
                 writer_id: list[0]['writer_id'],
                 writer_nickname: list[0]['writer_nickname'],
                 count: list[0]['count'],
