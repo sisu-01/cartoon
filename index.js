@@ -131,6 +131,37 @@ app.get('/api/writer', async (req, res) => {
     }
 });
 
+//여기
+app.get('/api/infoCount', async (req, res) => {
+    const id = req.query.id;
+    const nickname = req.query.nickname;
+
+    let countSql = '';
+    countSql += `SELECT COUNT(*) AS 'count' FROM writer WHERE id = '${id}' AND nickname = '${nickname}'`;
+    const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
+
+    if (count > 0) {
+
+        let listSql = '';
+        listSql += `SELECT count`;
+        listSql += ` FROM writer WHERE id = '${id}' AND nickname = '${nickname}'`;
+        const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
+        
+        if(list){
+            const result = {
+                ok: true,
+                count: list[0]['count'],
+            }
+            res.json(result);
+        }else{
+            res.json({ok:false, message:'에러발생'});
+        }
+
+    } else {
+        res.json({ok:false, message:'없음'});
+    }
+});
+
 app.get('/api/info', async (req, res) => {
     let temp = parseInt(req.query.page, 10) || 1;
     const page = (temp < 1)? 1 : temp;
