@@ -279,7 +279,7 @@ app.get('/api/list', async (req, res) => {
         let listSql = '';
         listSql += `SELECT * FROM cartoon`;
         listSql += ` WHERE series_id = ${id}`;
-        listSql += ` ORDER BY id ASC`;
+        listSql += ` ORDER BY id DESC`;
         listSql += ` LIMIT ${START_PAGE}, ${PER_PAGE}`;
         const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
 
