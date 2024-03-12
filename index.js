@@ -237,7 +237,7 @@ app.get('/api/series', async (req, res) => {
         if (sort) {
             listSql += ` ORDER BY average DESC`;
         } else {
-            listSql += ` ORDER BY id DESC`;
+            listSql += ` ORDER BY last_update DESC`;
         }
         listSql += ` LIMIT ${START_PAGE}, ${PER_PAGE}`;
         const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
