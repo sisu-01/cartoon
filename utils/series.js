@@ -29,7 +29,7 @@ function test() {
                 const e = list[i];
 
                 const [ title1, title2 ] = splitString(e['title']);
-                //수정 백분율 어케 하지
+                // 백분율 어케 하지
                 const len1 = base1.length > title1.length? base1.length : title1.length;
                 const len2 = base2.length > title2.length? base2.length : title2.length;
                 const percent1 = 100 / len1;
@@ -39,7 +39,7 @@ function test() {
                 const similarity1 = 100 - Math.round(distance1 * percent1);
                 const similarity2 = 100 - Math.round(distance2 * percent2);
                 const sum = similarity1 + similarity2;
-                //수정 글이 길 수록 요구 퍼센트가 낮고
+                // 글이 길 수록 요구 퍼센트가 낮고
                 //글이 짧을 수록 요구 서펜트가 높아야 한다
                 //x = 길이
                 //-5/7 * x + ( 155 / 7 + 35 ) = 요구 퍼센트
