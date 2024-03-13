@@ -136,16 +136,23 @@ app.get('/api/infoCount', async (req, res) => {
     const id = req.query.id;
     const nickname = req.query.nickname;
 
-    let countSql = '';
-    countSql += `SELECT COUNT(*) AS 'count' FROM writer WHERE id = '${id}' AND nickname = '${nickname}'`;
-    const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
+    // 아래 코드는 부적절한 코드이다. nickname을 문자열에 바로 박아버리는데, 이것은 sql injection을 일으킬 수 있다.
+    // 파라미터화된 쿼리를 사용하면 저 ? 안에 값이 그대로 쿼리에 삽입되지 않고 별도의 쿼리로 전달된다고 한다.
+    //const countSql += `SELECT COUNT(*) AS 'count' FROM writer WHERE id = '${id}' AND nickname = '${nickname}'`;
+    
+    // 파라미터화된 쿼리 사용
+    const countSql = 'SELECT COUNT(*) AS count FROM writer WHERE id = ? AND nickname = ?';
+    const count = await runSql(countSql, [id, nickname]).then(data => {return data[0]['count']}).catch(() => {return 0});
 
     if (count > 0) {
 
-        let listSql = '';
-        listSql += `SELECT count`;
-        listSql += ` FROM writer WHERE id = '${id}' AND nickname = '${nickname}'`;
-        const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
+        // let listSql = '';
+        // listSql += `SELECT count`;
+        // listSql += ` FROM writer WHERE id = '${id}' AND nickname = '${nickname}'`;
+        
+        // 마찬가지로 파라미터화된 쿼리 사용
+        const listSql = 'SELECT count FROM writer WHERE id = ? AND nickname = ?';
+        const list = await runSql(listSql, [id, nickname]).then(data => {return data}).catch(()=>{return null});
         
         if(list){
             const result = {
@@ -165,25 +172,24 @@ app.get('/api/infoCount', async (req, res) => {
 app.get('/api/info', async (req, res) => {
     let temp = parseInt(req.query.page, 10) || 1;
     const page = (temp < 1)? 1 : temp;
-    //수정 id랑 nickname sql 인잭션 방지해야돼;
     const id = req.query.id;
     const nickname = req.query.nickname;
     const sort = req.query.sort === 'true';
     const cut = Number(req.query.cut) || false;
 
     let countSql = '';
-    countSql += `SELECT COUNT(*) AS 'count' FROM cartoon WHERE (writer_id = '${id}' AND writer_nickname = '${nickname}')`;
+    countSql += `SELECT COUNT(*) AS 'count' FROM cartoon WHERE (writer_id = ? AND writer_nickname = ?)`;
     if (cut) {
         countSql += ` AND recommend >= ${cut}`;
     }
-    const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
+    const count = await runSql(countSql, [id, nickname]).then(data => {return data[0]['count']}).catch(() => {return 0});
 
     if (count > 0) {
 
         const START_PAGE = (page - 1) * PER_PAGE;
         let listSql = '';
         listSql += `SELECT * FROM cartoon`;
-        listSql += ` WHERE (writer_id = '${id}' AND writer_nickname = '${nickname}')`;
+        listSql += ` WHERE (writer_id = ? AND writer_nickname = ?)`;
         if (cut) {
             listSql += ` AND recommend >= ${cut}`;
         }
@@ -193,7 +199,7 @@ app.get('/api/info', async (req, res) => {
             listSql += ` ORDER BY id DESC`;
         }
         listSql += ` LIMIT ${START_PAGE}, ${PER_PAGE}`;
-        const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
+        const list = await runSql(listSql, [id, nickname]).then(data => {return data}).catch(()=>{return null});
 
         if(list){
             const result = {
