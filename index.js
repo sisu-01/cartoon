@@ -78,28 +78,31 @@ app.get('/api/writer', async (req, res) => {
     let temp = parseInt(req.query.page, 10) || 1;
     const page = (temp < 1)? 1 : temp;
     const sort = parseInt(req.query.sort, 10) || 1;
+    const nickname = req.query.nickname;
 
-    const countSql = `SELECT COUNT(*) AS 'count' FROM writer WHERE 1=1;`
-    const count = await runSql(countSql).then(data => {return data[0]['count']}).catch(() => {return 0});
+    let countSql = `SELECT COUNT(*) AS 'count' FROM writer WHERE`;
+    let whereSql = '';
+    let queryParams;
+    let isNicknameValid;
+    if (nickname === '' || nickname === null || nickname === undefined || !nickname) {
+        whereSql += ' 1=1'
+        queryParams = [];
+        isNicknameValid = false;
+    } else {
+        whereSql += ' nickname = ?'
+        queryParams = [nickname];
+        isNicknameValid = true;
+    }
+    //where 더하기
+    countSql += whereSql;
+    const count = await runSql(countSql, queryParams).then(data => {return data[0]['count']}).catch(() => {return 0});
 
     if (count > 0) {
 
         const START_PAGE = (page - 1) * PER_PAGE;
-        let listSql = '';
-        /*
-        listSql += `SELECT writer_id, writer_nickname, date, COUNT(*) AS 'count', ROUND(AVG(recommend)) AS 'average' FROM cartoon`;
-        listSql += ` WHERE 1=1`;
-        listSql += ` GROUP BY writer_id, writer_nickname`;
-        if (sort === 1) {//가나다
-            listSql += ` ORDER BY writer_nickname ASC`;
-        } else if (sort === 2) {//개추 평균
-            listSql += ` ORDER BY average DESC`;
-        } else if (sort === 3) {//첫 념글
-            listSql += ` ORDER BY id ASC`;
-        } else if (sort === 4) {//만화수
-            listSql += ` ORDER BY count DESC`;
-        }*/
-        listSql += `SELECT id, nickname, date, count, recommend, average FROM writer`;
+        let listSql = `SELECT id, nickname, date, count, recommend, average FROM writer WHERE`;
+        //where 더하기
+        listSql += whereSql;
         if (sort === 1) {//가나다
             listSql += ` ORDER BY nickname ASC`;
         } else if (sort === 2) {//첫 념글
@@ -112,7 +115,7 @@ app.get('/api/writer', async (req, res) => {
             listSql += ` ORDER BY average DESC`;
         }
         listSql += ` LIMIT ${START_PAGE}, ${PER_PAGE}`;
-        const list = await runSql(listSql).then(data => {return data}).catch(()=>{return null});
+        const list = await runSql(listSql, queryParams).then(data => {return data}).catch(()=>{return null});
 
         if(list){
             const result = {
