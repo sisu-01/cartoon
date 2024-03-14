@@ -89,8 +89,8 @@ app.get('/api/writer', async (req, res) => {
         queryParams = [];
         isNicknameValid = false;
     } else {
-        whereSql += ' nickname = ?'
-        queryParams = [nickname];
+        whereSql += ' nickname LIKE ?';
+        queryParams = [`%${nickname}%`];
         isNicknameValid = true;
     }
     //where 더하기
