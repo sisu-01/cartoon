@@ -74,6 +74,20 @@ app.get('/api/cartoon', async (req, res) => {
     }
 });
 
+app.get('/api/cartoonRand', async (req, res) => {
+    const randSql = 'SELECT id FROM cartoon ORDER BY RAND() LIMIT 1';
+    const cartoonId = await runSql(randSql).then(data => {return data[0]['id']}).catch(()=>{return null});
+    if(cartoonId){
+        const result = {
+            ok: true,
+            cartoonId: cartoonId
+        }
+        res.json(result);
+    }else{
+        res.json({ok:false, message:'에러발생'});
+    }
+});
+
 app.get('/api/writer', async (req, res) => {
     let temp = parseInt(req.query.page, 10) || 1;
     const page = (temp < 1)? 1 : temp;
