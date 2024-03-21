@@ -200,22 +200,30 @@ app.get('/api/info', async (req, res) => {
     const nickname = req.query.nickname;
     const sort = req.query.sort === 'true';
     const cut = Number(req.query.cut) || false;
+    const title = req.query.title;
+    const titleIsValid = !(title === '' || title === null || title === undefined || !title);
+    let queryParams = [id, nickname];
 
-    let countSql = '';
-    countSql += `SELECT COUNT(*) AS 'count' FROM cartoon WHERE (writer_id = ? AND writer_nickname = ?)`;
+    let countSql = `SELECT COUNT(*) AS 'count' FROM cartoon WHERE (writer_id = ? AND writer_nickname = ?)`;
     if (cut) {
         countSql += ` AND recommend >= ${cut}`;
     }
-    const count = await runSql(countSql, [id, nickname]).then(data => {return data[0]['count']}).catch(() => {return 0});
+    if (titleIsValid) {
+        countSql += ' AND title LIKE ?';
+        queryParams.push(`%${title}%`);
+    }
+
+    const count = await runSql(countSql, queryParams).then(data => {return data[0]['count']}).catch(() => {return 0});
 
     if (count > 0) {
 
         const START_PAGE = (page - 1) * PER_PAGE;
-        let listSql = '';
-        listSql += `SELECT * FROM cartoon`;
-        listSql += ` WHERE (writer_id = ? AND writer_nickname = ?)`;
+        let listSql = `SELECT * FROM cartoon WHERE (writer_id = ? AND writer_nickname = ?)`;
         if (cut) {
             listSql += ` AND recommend >= ${cut}`;
+        }
+        if (titleIsValid) {
+            listSql += ' AND title LIKE ?';
         }
         if (sort) {
             listSql += ` ORDER BY recommend DESC`;
@@ -223,7 +231,7 @@ app.get('/api/info', async (req, res) => {
             listSql += ` ORDER BY id DESC`;
         }
         listSql += ` LIMIT ${START_PAGE}, ${PER_PAGE}`;
-        const list = await runSql(listSql, [id, nickname]).then(data => {return data}).catch(()=>{return null});
+        const list = await runSql(listSql, queryParams).then(data => {return data}).catch(()=>{return null});
 
         if(list){
             const result = {
