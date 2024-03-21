@@ -104,30 +104,26 @@ app.get('/api/writer', async (req, res) => {
     const page = (temp < 1)? 1 : temp;
     const sort = parseInt(req.query.sort, 10) || 1;
     const nickname = req.query.nickname;
-
-    let countSql = `SELECT COUNT(*) AS 'count' FROM writer WHERE`;
-    let whereSql = '';
+    const nicknameIsValid = !(nickname === '' || nickname === null || nickname === undefined || !nickname);
     let queryParams;
-    let isNicknameValid;
-    if (nickname === '' || nickname === null || nickname === undefined || !nickname) {
-        whereSql += ' 1=1'
-        queryParams = [];
-        isNicknameValid = false;
-    } else {
-        whereSql += ' nickname LIKE ?';
+
+    let countSql = `SELECT COUNT(*) AS 'count' FROM writer WHERE 1=1`;
+    if (nicknameIsValid) {
+        countSql += ' AND nickname LIKE ?';
         queryParams = [`%${nickname}%`];
-        isNicknameValid = true;
+    } else {
+        queryParams = [];
     }
-    //where 더하기
-    countSql += whereSql;
+
     const count = await runSql(countSql, queryParams).then(data => {return data[0]['count']}).catch(() => {return 0});
 
     if (count > 0) {
 
         const START_PAGE = (page - 1) * PER_PAGE;
-        let listSql = `SELECT id, nickname, date, count, recommend, average FROM writer WHERE`;
-        //where 더하기
-        listSql += whereSql;
+        let listSql = `SELECT id, nickname, date, count, recommend, average FROM writer WHERE 1=1`;
+        if (nicknameIsValid) {
+            listSql += ' AND nickname LIKE ?';
+        }
         if (sort === 1) {//가나다
             listSql += ` ORDER BY nickname ASC`;
         } else if (sort === 2) {//첫 념글
